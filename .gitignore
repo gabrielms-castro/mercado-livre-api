@@ -11,3 +11,6 @@ wheels/
 
 # Virtual Variables
 .env
+
+# Database
+*.db
