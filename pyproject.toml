@@ -1,0 +1,12 @@
+[project]
+name = "mercado-livre-api"
+version = "0.1.0"
+description = "Projeto para explorar categorias, subcategorias, tendências e produtos do Mercado Livre"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4>=4.14.2",
+    "lxml>=6.0.2",
+    "python-dotenv>=1.2.1",
+    "requests>=2.32.5",
+]
