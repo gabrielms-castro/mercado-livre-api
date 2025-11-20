@@ -1,6 +1,6 @@
 import uuid
 
-def create_subcategory(db, category_id, params):
+def create_produto(db, category_id, params):
     id = str(uuid.uuid4())
     subcategoria = params["subcategoria"]
     subcategoria_url = params["subcategoria_url"]
