@@ -1,43 +1,22 @@
-
-import requests
-from bs4 import BeautifulSoup
 import src.config as config
-from src.db.categories import create_category
-from src.db.sub_categories import create_subcategory
+from src.db.db import DBConnectionHandler
+from src.services.scraper import MercadoLivre
 
 def main():
-    db = config.cfg['db']
+    db_handler = DBConnectionHandler()
+    db_conn = db_handler.get_db_connection
+    db_cursor = db_handler.get_cursor_object
+    ml = MercadoLivre(db_conn, db_cursor)
 
-    url = "https://www.mercadolivre.com.br/categorias"
-    headers = {
-        'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36',
-    }
+    print("Buscando categorias de produtos...")
+    ml.fetch_categorias()
 
-    response = requests.get(
-        url=url, 
-        headers=headers
-    )
-
-    html = response.text
-    soup = BeautifulSoup(html, 'lxml')
-    categories = soup.find_all('div', class_='categories__container')
-    for category in categories:
-        params = {
-            'categoria': category.h2.text,
-            'categoria_url': category.h2.a['href']
-        }
-        category_id = create_category(db, params)
-
-        for sub_category in category.ul:
-            subcategory_params = {
-                'subcategoria': sub_category.h3.text,
-                'subcategoria_url': sub_category.a['href']
-            }
-            subcategory_id = create_subcategory(
-                db, 
-                category_id=category_id, 
-                params=subcategory_params 
-            )
+    print("Buscando subcategorias de produtos...")
+    ml.fetch_subcategorias()
+     
+    print("Fechando conexão com banco de dados...")
+    db_handler.close_connection()
+    print("Finalizado!")
 
 if __name__ == "__main__":
     main()
