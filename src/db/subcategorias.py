@@ -38,3 +38,23 @@ def read_subcategory(cursor, subcategory_name, category_id):
         "subcategoria": query[1],
         "categoria_id": query[2],
     }
+
+def list_all_subcategories(cursor):
+    sql = """
+    SELECT * 
+    FROM subcategorias
+    """
+    cursor.execute(sql)
+    query = cursor.fetchall()
+    result = []
+    for row in query:
+        row_data = {}
+        row_data['id'] = row[0]
+        row_data['created_at'] = row[1]
+        row_data['updated_at'] = row[2]
+        row_data['subcategoria'] = row[3]
+        row_data['subcategoria_url'] = row[4]
+        row_data['categoria_id'] = row[5]
+        result.append(row_data)
+
+    return result

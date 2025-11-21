@@ -1,11 +1,11 @@
 
 import httpx
+from lxml import html
 from selectolax.parser import HTMLParser
 from src.config import cfg
 from src.db.categorias import create_category, read_category
-from src.db.produtos import create_product_metada
-from src.db.subcategorias import create_subcategoria, read_subcategory
-from src.utils import brl_to_float
+from src.db.subcategorias import create_subcategoria, list_all_subcategories, read_subcategory
+from src.utils import brl_to_float, get_urls
 
 
 class MercadoLivre:
@@ -99,22 +99,32 @@ class MercadoLivre:
                         item
                     )
     
-    def fetch_products(self):
-        response = httpx.get(
-            url="https://lista.mercadolivre.com.br/espelho-retrovisor-com-camera#trends_tracking_id=137f4f41-08a3-4601-badb-c9eaa36c11bd&component_id=MOST_WANTED",
-            headers=self.headers
-        )
-        html = HTMLParser(response.text)
-        cards = html.css('div.poly-card__content')
-        for card in cards:
-            produto_titulo = self._extract_text(card, 'h3 a')
-            produto_url = self._extract_href(card, 'h3 a')
-            preco = self._extract_text(card, 'div.poly-price__current span.andes-money-amount--cents-superscript')
-            preco_cleaned = brl_to_float(preco)
-            item = {
-                "produto": produto_titulo,
-                "produto_url": produto_url,
-                "preco": preco_cleaned
-            }
-            print(item)
-            create_product_metada(self.db_conn, self.db_cursor, item)
+    async def crawl(self):
+        client = httpx.AsyncClient()
+        query = list_all_subcategories(self.db_cursor)
+        urls_to_crawl = get_urls(query)
+
+        async with client:
+            for url in urls_to_crawl:
+
+                response = await client.get(
+                    url=url,
+                    headers=self.headers
+                )
+
+                html = HTMLParser(response.text)
+                print(html.css_first('h1').text())
+
+        # cards = html.css('div.poly-card__content')
+        # for card in cards:
+        #     produto_titulo = self._extract_text(card, 'h3 a')
+        #     produto_url = self._extract_href(card, 'h3 a')
+        #     preco = self._extract_text(card, 'div.poly-price__current span.andes-money-amount--cents-superscript')
+        #     preco_cleaned = brl_to_float(preco)
+        #     item = {
+        #         "produto": produto_titulo,
+        #         "produto_url": produto_url,
+        #         "preco": preco_cleaned
+        #     }
+        #     print(item)
+        #     create_product_metada(self.db_conn, self.db_cursor, item)
