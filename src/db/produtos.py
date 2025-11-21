@@ -1,19 +1,20 @@
 import uuid
 
-def create_produto(db, category_id, params):
+def create_product_metada(conn, cursor, params):
     id = str(uuid.uuid4())
-    subcategoria = params["subcategoria"]
-    subcategoria_url = params["subcategoria_url"]
+    produto = params["produto"]
+    produto_url = params["produto_url"]
+    preco = params["preco"]
 
     sql = """ 
-    INSERT INTO sub_categorias (id, created_at, updated_at, subcategoria, subcategoria_url, categoria_id)
+    INSERT INTO produtos (id, created_at, updated_at, produto, produto_url, preco)
     VALUES (?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?, ?, ?)
     """
-    db.execute(
+    cursor.execute(
         sql,
-        [id, subcategoria, subcategoria_url, category_id]
+        [id, produto, produto_url, preco]
     )
-    db.commit()
+    conn.commit()
 
-    print(f"Subcategoria {subcategoria} criada")
+    print(f"Produto {produto} criada")
     return id
