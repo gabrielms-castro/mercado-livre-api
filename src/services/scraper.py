@@ -3,7 +3,9 @@ import httpx
 from selectolax.parser import HTMLParser
 from src.config import cfg
 from src.db.categorias import create_category, read_category
+from src.db.produtos import create_product_metada
 from src.db.subcategorias import create_subcategoria, read_subcategory
+from src.utils import brl_to_float
 
 
 class MercadoLivre:
@@ -96,3 +98,23 @@ class MercadoLivre:
                         categoria_id,
                         item
                     )
+    
+    def fetch_products(self):
+        response = httpx.get(
+            url="https://lista.mercadolivre.com.br/espelho-retrovisor-com-camera#trends_tracking_id=137f4f41-08a3-4601-badb-c9eaa36c11bd&component_id=MOST_WANTED",
+            headers=self.headers
+        )
+        html = HTMLParser(response.text)
+        cards = html.css('div.poly-card__content')
+        for card in cards:
+            produto_titulo = self._extract_text(card, 'h3 a')
+            produto_url = self._extract_href(card, 'h3 a')
+            preco = self._extract_text(card, 'div.poly-price__current span.andes-money-amount--cents-superscript')
+            preco_cleaned = brl_to_float(preco)
+            item = {
+                "produto": produto_titulo,
+                "produto_url": produto_url,
+                "preco": preco_cleaned
+            }
+            print(item)
+            create_product_metada(self.db_conn, self.db_cursor, item)
